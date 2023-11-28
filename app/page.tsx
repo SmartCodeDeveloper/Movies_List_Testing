@@ -75,6 +75,59 @@ const Home = () => {
     }
   };
 
+  const sortMovies = (movies: Movie[]): Movie[] => {
+    switch (sortBy) {
+      case 'title':
+        return [...movies].sort((a, b) => a.title.localeCompare(b.title));
+      case 'release_date':
+        return [...movies].sort((a, b) => a.release_date.localeCompare(b.release_date));
+      case 'popularity':
+        return [...movies].sort((a, b) => a.popularity - b.popularity);
+      case 'vote_average':
+        return [...movies].sort((a, b) => a.vote_average - b.vote_average);
+      default:
+        return movies;
+    }
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prevPage) => prevPage - 1);
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prevPage) => prevPage + 1);
+  };
+
+  const handleGenreChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedGenre(Number(event.target.value));
+  };
+
+  const handleRatingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRating(Number(event.target.value));
+  };
+
+  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(event.target.value);
+  };
+
+  const handleMovieClick = async (movie: Movie) => {
+    setSelectedMovie(movie);
+
+    try {
+      const response = await axios.get(
+        `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${API_KEY}`
+      );
+      setMovieDetails(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedMovie(null);
+    setMovieDetails(null);
+  };
+
   useEffect(() => {
     fetchGenres(); // Get genre list
   }, []);
@@ -167,6 +220,37 @@ const Home = () => {
           Next Page
         </button>
       </div>
+
+      {selectedMovie && (
+        <div className="fixed inset-0 bgopacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">{selectedMovie.title}</h2>
+              <button
+                className="text-gray-500 text-3xl hover:text-gray-700"
+                onClick={closeModal}
+              >
+                &times;
+              </button>
+            </div>
+
+            {movieDetails ? (
+              <div className='text-black'>
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${movieDetails.backdrop_path}`}
+                  alt={movieDetails.title}
+                  className="mb-2 w-92 h-60 object-cover rounded"
+                />
+                <p>Release date: {movieDetails.release_date}</p>
+                <p>{movieDetails.overview}</p>
+                <p>Budget: {movieDetails.budget}</p>
+              </div>
+            ) : (
+              <p>Loading movie details...</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
